@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"os"
 	"strconv"
@@ -30,8 +31,7 @@ func process(canvas *svg.SVG, filename string, g geometry) int {
 	}
 	f, err := os.Open(filename)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		return 0
+		log.Fatal(err)
 	}
 	defer f.Close()
 	return g.visualize(canvas, filename, f)
