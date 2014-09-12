@@ -308,7 +308,7 @@ func main() {
 	nstars := 250
 	style := "font-size:48pt;fill:white;text-anchor:middle"
 	
-	rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().UnixNano())
 	canvas.Start(width, height)
 	canvas.Rect(0,0,width,height)
 	for i := 0; i < nstars; i++ {
