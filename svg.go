@@ -194,7 +194,7 @@ func (svg *SVG) DefEnd() { svg.println(`</defs>`) }
 // Marker defines a marker
 // Standard reference: http://www.w3.org/TR/SVG11/painting.html#MarkerElement
 func (svg *SVG) Marker(id string, x, y, width, height int, s ...string) {
-	svg.printf(`<marker id="%s" refX="%d" refY="%d" markerWidth="%d" markerHeight="%d" %s`, 
+	svg.printf(`<marker id="%s" refX="%d" refY="%d" markerWidth="%d" markerHeight="%d" %s`,
 		id, x, y, width, height, endstyle(s, ">\n"))
 }
 
@@ -210,13 +210,12 @@ func (svg *SVG) Pattern(id string, x, y, width, height int, putype string, s ...
 	if putype != "user" {
 		puattr = "objectBoundingBox"
 	}
-	svg.printf(`<pattern id="%s" x="%d" y="%d" width="%d" height="%d" patternUnits="%s" %s`, 
+	svg.printf(`<pattern id="%s" x="%d" y="%d" width="%d" height="%d" patternUnits="%s" %s`,
 		id, x, y, width, height, puattr, endstyle(s, ">\n"))
 }
 
 // PatternEnd ends a marker
 func (svg *SVG) PatternEnd() { svg.println(`</pattern>`) }
-
 
 // Desc specified the text of the description tag.
 // Standard Reference: http://www.w3.org/TR/SVG11/struct.html#DescElement

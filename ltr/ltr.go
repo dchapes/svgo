@@ -41,7 +41,7 @@ func imagefiles(directory string) []string {
 	return names
 }
 
-// ltposter creates poster style: a title, followed by a list 
+// ltposter creates poster style: a title, followed by a list
 // of volleys
 func ltposter(x, y, w, h int, f []string) {
 	canvas.Image(x, y, w*2, h*2, f[0]) // first file, assumed to be the banner
