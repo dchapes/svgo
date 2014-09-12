@@ -43,7 +43,7 @@ func main() {
 	canvas.Rect(0, 0, width/2, height, "fill:white; stroke:gray")
 	canvas.Rect(width/2, 0, width/2, height, "fill:white; stroke:gray")
 
-	canvas.Desc("Left: Go rand package (red), Right: /dev/urandom")
+	canvas.Desc("Left: Go rand package (red), Right: crypto/rand")
 	canvas.Gstyle("stroke:none; fill-opacity:0.5")
 	for i := 0; i < n; i++ {
 		rx = rand.Intn(255)
