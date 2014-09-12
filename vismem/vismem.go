@@ -4,6 +4,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"io"
 	"os"
 
 	"github.com/ajstarks/svgo"
@@ -18,18 +20,23 @@ func main() {
 	rowsize := 32
 	diameter := 16
 	var value int
-	var source string
+	var r io.Reader
 
 	if len(os.Args) > 1 {
-		source = os.Args[1]
+		f, err := os.Open(os.Args[1])
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+		r = f
 	} else {
-		source = "/dev/urandom"
+		r = rand.Reader
 	}
 
-	f, _ := os.Open(source)
 	mem := make([]byte, n)
-	f.Read(mem)
-	f.Close()
+	if _, err := io.ReadFull(r, mem); err != nil {
+		panic(err)
+	}
 
 	canvas.Start(width, height)
 	canvas.Title("Visualize Files")

@@ -4,7 +4,9 @@
 package main
 
 import (
+	srand "crypto/rand"
 	"fmt"
+	"io"
 	"math/rand"
 	"os"
 	"strconv"
@@ -25,12 +27,14 @@ func main() {
 		n, _ = strconv.Atoi(os.Args[1])
 	}
 
-	f, _ := os.Open("/dev/urandom")
 	x := make([]byte, n)
 	y := make([]byte, n)
-	f.Read(x)
-	f.Read(y)
-	f.Close()
+	if _, err := io.ReadFull(srand.Reader, x); err != nil {
+		panic(err)
+	}
+	if _, err := io.ReadFull(srand.Reader, y); err != nil {
+		panic(err)
+	}
 
 	rand.Seed(int64(time.Now().Nanosecond()) % 1e9)
 	canvas.Start(600, 400)
@@ -52,7 +56,7 @@ func main() {
 	canvas.Desc("Legends")
 	canvas.Gstyle("text-anchor:middle; font-size:18; font-family:Calibri")
 	canvas.Text(128, 280, "Go rand package", "")
-	canvas.Text(384, 280, "/dev/urandom")
+	canvas.Text(384, 280, "crypto/rand")
 	canvas.Text(256, 280, fmt.Sprintf("n=%d", n), "font-size:12")
 	canvas.Gend()
 	canvas.End()
