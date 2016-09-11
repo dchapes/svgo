@@ -47,6 +47,7 @@ const (
 	ticfmt    = "stroke:rgb(200,200,200);stroke-width:1px"
 	labelfmt  = ticfmt + ";text-anchor:end;fill:black"
 	textfmt   = "stroke:none;baseline-shift:-33.3%"
+	smallint  = -(1 << 30)
 )
 
 // init initializes command flags and sets default options
@@ -80,6 +81,8 @@ func init() {
 	fontsize := flag.Int("fontsize", 11, "font size")
 	xinterval := flag.Int("xint", 10, "x axis interval")
 	yinterval := flag.Int("yint", 4, "y axis interval")
+	ymin := flag.Int("ymin", smallint, "y minimum")
+	ymax := flag.Int("ymax", smallint, "y maximum")
 
 	// meta options
 	flag.IntVar(&beginx, "bx", 100, "initial x")
@@ -119,6 +122,8 @@ func init() {
 	plotnum["xinterval"] = *xinterval
 	plotnum["yinterval"] = *yinterval
 	plotnum["barsize"] = *barsize
+	plotnum["ymin"] = *ymin
+	plotnum["ymax"] = *ymax
 }
 
 // fmap maps world data to document coordinates
@@ -176,6 +181,13 @@ func plot(x, y, w, h int, settings plotset, d []rawdata) {
 			miny = v.y
 		}
 	}
+
+	if settings.size["ymin"] != smallint {
+		miny = float64(settings.size["ymin"])
+	}
+	if settings.size["ymax"] != smallint {
+		maxy = float64(settings.size["ymax"])
+	}
 	// Prepare for a area or line chart by allocating
 	// polygon coordinates; for the hrizon plot, you need two extra coordinates
 	// for the extrema.
@@ -199,6 +211,7 @@ func plot(x, y, w, h int, settings plotset, d []rawdata) {
 	spacer := 10
 	canvas.Gstyle(fmt.Sprintf(globalfmt,
 		settings.attr["font"], settings.size["fontsize"], settings.size["linesize"]))
+
 	for i, v := range d {
 		xp := int(fmap(v.x, minx, maxx, float64(x), float64(x+w)))
 		yp := int(fmap(v.y, miny, maxy, float64(y), float64(y-h)))

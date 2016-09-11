@@ -2,7 +2,6 @@
 // (1) only listen on localhost, (default port 1999)
 // (2) always render html,
 // (3) SVGo default code,
-// (4) invoke the compiler and linker directly
 package main
 
 import (
@@ -14,13 +13,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"text/template"
 )
 
 var (
 	httpListen = flag.String("port", "1999", "port to listen on")
+	useFloat   = flag.Bool("f", false, "use the floating point version")
 )
 
 var (
@@ -51,7 +50,11 @@ func main() {
 func FrontPage(w http.ResponseWriter, req *http.Request) {
 	data, err := ioutil.ReadFile(req.URL.Path[1:])
 	if err != nil {
-		data = helloWorld
+		if *useFloat {
+			data = helloWorldFloat
+		} else {
+			data = helloWorld
+		}
 	}
 	frontPage.Execute(w, data)
 }
@@ -71,7 +74,7 @@ func Compile(w http.ResponseWriter, req *http.Request) {
 }
 
 var (
-	compiler, linker, tmpdir, pkgdir, toolchar, buildpid string
+	tmpdir, pkgdir, buildpid string
 )
 
 func init() {
@@ -82,14 +85,6 @@ func init() {
 		log.Fatal(err)
 	}
 
-	// build the command paths for the compiler and linker, assumes that GOPATH is set
-	var toolmap = map[string]string{"arm": "5", "amd64": "6", "386": "8"}
-	toolchar = toolmap[runtime.GOARCH]
-	ga := runtime.GOOS + "_" + runtime.GOARCH
-	tool := runtime.GOROOT() + "/pkg/tool/" + ga + "/" + toolchar
-	pkgdir = os.Getenv("GOPATH") + "/pkg/" + ga
-	compiler = tool + "g"
-	linker = tool + "l"
 	buildpid = strconv.Itoa(os.Getpid())
 }
 
@@ -97,11 +92,6 @@ func compile(req *http.Request) (out []byte, err error) {
 	// target is the base name for .go, object, executable files
 	target := filepath.Join(tmpdir, "svgplay"+buildpid+strconv.Itoa(<-uniq))
 	src := target + ".go"
-	obj := target + "." + toolchar
-	bin := target
-	if runtime.GOOS == "windows" {
-		bin += ".exe"
-	}
 
 	// write body to target.go
 	body := new(bytes.Buffer)
@@ -112,21 +102,7 @@ func compile(req *http.Request) (out []byte, err error) {
 	if err = ioutil.WriteFile(src, body.Bytes(), 0666); err != nil {
 		return
 	}
-
-	// build and link target.go, creating target
-	out, err = run("", compiler, "-I", pkgdir, "-o", obj, src)
-	defer os.Remove(obj)
-	if err != nil {
-		return
-	}
-
-	out, err = run("", linker, "-L", pkgdir, "-o", bin, obj)
-	defer os.Remove(bin)
-	if err != nil {
-		return
-	}
-	// run target
-	return run("", bin)
+	return run("", "go", "run", src)
 }
 
 // error writes compile, link, or runtime errors to the HTTP connection.
@@ -299,7 +275,7 @@ import (
 	"github.com/ajstarks/svgo"
 )
 
-func ri(n int) int { return rand.Intn(n) }
+func rn(n int) int { return rand.Intn(n) }
 
 func main() {
 	canvas := svg.New(os.Stdout)
@@ -312,7 +288,37 @@ func main() {
 	canvas.Start(width, height)
 	canvas.Rect(0,0,width,height)
 	for i := 0; i < nstars; i++ {
-		canvas.Circle(ri(width), ri(height), ri(3), "fill:white")
+		canvas.Circle(rn(width), rn(height), rn(3), "fill:white")
+	}
+	canvas.Circle(width/2, height, width/2, "fill:rgb(77, 117, 232)")
+	canvas.Text(width/2, height*4/5, "hello, world", style)
+	canvas.End()
+}`)
+
+var helloWorldFloat = []byte(`
+package main
+
+import (
+	"math/rand"
+	"os"
+	"time"
+	"github.com/ajstarks/svgo/float"
+)
+
+func rn(n float64) float64 { return rand.Float64() * n }
+
+func main() {
+	canvas := svg.New(os.Stdout)
+	width := 500.0
+	height := 500.0
+	nstars := 250
+	style := "font-size:48pt;fill:white;text-anchor:middle"
+	
+	rand.Seed(time.Now().Unix())
+	canvas.Start(width, height)
+	canvas.Rect(0,0,width,height)
+	for i := 0; i < nstars; i++ {
+		canvas.Circle(rn(width), rn(height), rn(3), "fill:white")
 	}
 	canvas.Circle(width/2, height, width/2, "fill:rgb(77, 117, 232)")
 	canvas.Text(width/2, height*4/5, "hello, world", style)
