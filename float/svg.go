@@ -133,12 +133,13 @@ func (svg *SVG) Startraw(ns ...string) {
 // End the SVG document
 func (svg *SVG) End() { svg.println("</svg>") }
 
-// Script defines a script with a specified type, (for example "application/javascript").
+// linkembed defines an element with a specified type, 
+// (for example "application/javascript", or "text/css").
 // if the first variadic argument is a link, use only the link reference.
 // Otherwise, treat those arguments as the text of the script (marked up as CDATA).
-// if no data is specified, just close the script element
-func (svg *SVG) Script(scriptype string, data ...string) {
-	svg.printf(`<script type="%s"`, scriptype)
+// if no data is specified, just close the element
+func (svg *SVG) linkembed(tag string, scriptype string, data ...string) {
+	svg.printf(`<%s type="%s"`, tag, scriptype)
 	switch {
 	case len(data) == 1 && islink(data[0]):
 		svg.printf(" %s/>\n", href(data[0]))
@@ -148,11 +149,21 @@ func (svg *SVG) Script(scriptype string, data ...string) {
 		for _, v := range data {
 			svg.println(v)
 		}
-		svg.printf("]]>\n</script>\n")
+		svg.printf("]]>\n</%s>\n", tag)
 
 	default:
 		svg.println(`/>`)
 	}
+}
+
+// Script defines a script with a specified type, (for example "application/javascript").
+func (svg *SVG) Script(scriptype string, data ...string) {
+	svg.linkembed("script", scriptype, data...)
+}
+
+// Style defines the specified style (for example "text/css")
+func (svg *SVG) Style(scriptype string, data ...string) {
+	svg.linkembed("style", scriptype, data...)
 }
 
 // Gstyle begins a group, with the specified style.
@@ -409,8 +420,8 @@ func (svg *SVG) Polyline(x []float64, y []float64, s ...string) {
 // Image places at x,y (upper left hand corner), the image with
 // width w, and height h, referenced at link, with optional style.
 // Standard Reference: http://www.w3.org/TR/SVG11/struct.html#ImageElement
-func (svg *SVG) Image(x float64, y float64, w float64, h float64, link string, s ...string) {
-	svg.printf(`<image %s %s %s`, dim(x, y, w, h, svg.Decimals), href(link), endstyle(s, emptyclose))
+func (svg *SVG) Image(x float64, y float64, w int, h int, link string, s ...string) {
+	svg.printf(`<image %s %s %s`, dim(x, y, float64(w), float64(h), svg.Decimals), href(link), endstyle(s, emptyclose))
 }
 
 // Text places the specified text, t at x,y according to the style specified in s
